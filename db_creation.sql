@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS Tweet(
+  created_at INTEGER NOT NULL,
+  id VARCHAR(50) NOT NULL,
+  id_str VARCHAR(50) NOT NULL,
+  text VARCHAR(150) NOT NULL,
+  source VARCHAR(100) NOT NULL,
+  truncated VARCHAR(50) NOT NULL,
+  quoted_status_id VARCHAR(50) ,
+  quoted_status_id_str VARCHAR(50) ,
+  is_quote_status VARCHAR(50) ,
+  quote_count DOUBLE ,
+  reply_count DOUBLE ,
+  retweet_count DOUBLE,
+  favorite_count DOUBLE,
+  favorited VARCHAR(50),
+  retweeted VARCHAR(50),
+  filter_level VARCHAR(50),
+  lang VARCHAR(50),
+  timestamp_ms VARCHAR(50),
+  PRIMARY KEY (id)
+)
