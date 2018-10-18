@@ -4,8 +4,8 @@ Twitter stream analysis for emergency management; before, during or after an eme
 ### Installation
 
 Get requirements through 
-``pip3 install tweepy``
+``pip3 install -r requirements.txt``
 
 ### Running the program
-Simpy run the program through
+Simply run the program through
 ``python3 twitter_streaming.py``

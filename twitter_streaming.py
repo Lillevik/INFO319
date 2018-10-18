@@ -1,4 +1,4 @@
-import tweepy, os, json, sqlite3
+import tweepy, os, json, sqlite3, traceback
 
 consumer_token = "A416DpVGgr6ojpB3ITnnh3ZIe"
 consumer_secret = "CJbxJRIxRpmVsGg5d8bxRzpSW0qMuaeRuCRyl2bSI9KISGPo92"
@@ -37,7 +37,7 @@ class CrisisStreamListener(tweepy.StreamListener):
         except KeyboardInterrupt:
             print("Program was stopped by the keyboard.")
         except Exception as e:
-            print(e, tweet._json)
+            raise e
 
     def on_error(self, status_code):
         """
@@ -67,13 +67,21 @@ class CrisisStreamListener(tweepy.StreamListener):
         :param tweet: A twitter object.
         :return: None
         """
-        query = "INSERT INTO Tweet  (created_at, id, id_str, text, source," \
-                " truncated, quoted_status_id, quoted_status_id_str, is_quote_status," \
-                " quote_count, reply_count, retweet_count, favorite_count, favorited," \
-                " retweeted, filter_level, lang, timestamp_ms)" \
-                " VALUES " \
-                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); "
-        params = [
+        tweet_query = "INSERT INTO Tweet  (created_at, id, id_str, text, source," \
+                      " truncated, quoted_status_id, quoted_status_id_str, is_quote_status," \
+                      " quote_count, reply_count, retweet_count, favorite_count, favorited," \
+                      " retweeted, filter_level, lang, timestamp_ms, lat, lon, place_id, user_id)" \
+                      " VALUES " \
+                      "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); "
+        print(tweet._json)
+        lat = None
+        lon = None
+        coords = self.get_value(tweet, 'geo')
+        if coords:
+            coords = coords['coordinates']
+            lat = coords[0]
+            lon = coords[1]
+        tweet_params = [
             int(tweet.created_at.strftime('%Y%m%d%H%M%S')),
             self.get_value(tweet, 'id'),
             self.get_value(tweet, 'id_str'),
@@ -92,8 +100,58 @@ class CrisisStreamListener(tweepy.StreamListener):
             self.get_value(tweet, 'filter_level'),
             self.get_value(tweet, 'lang'),
             self.get_value(tweet, 'timestamp_ms'),
+            lat,
+            lon,
+            tweet._json['place']['id'],
+            tweet._json['user']['id']
         ]
-        self.db.cursor().execute(query, params)
+
+        place_query = "INSERT INTO Place (id, url, place_type, name, full_name, country_code, country, bounding_box)" \
+                      " values (?, ?, ?, ?, ?, ?, ?, ?);"
+
+        place_params = [
+            tweet._json['place']['id'],
+            tweet._json['place']['url'],
+            tweet._json['place']['place_type'],
+            tweet._json['place']['name'],
+            tweet._json['place']['full_name'],
+            tweet._json['place']['country_code'],
+            tweet._json['place']['country'],
+            json.dumps(tweet._json['place']['bounding_box'])
+        ]
+
+        user_query = "INSERT INTO User (id, id_str, name, screen_name, location, url, description, verified," \
+                     " followers_count, friends_count, favourites_count, statuses_count, lang, created_at) " \
+                     " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+
+        user_params = [
+            tweet._json['user']['id'],
+            tweet._json['user']['id_str'],
+            tweet._json['user']['name'],
+            tweet._json['user']['screen_name'],
+            tweet._json['user']['location'],
+            tweet._json['user']['url'],
+            tweet._json['user']['description'],
+            tweet._json['user']['verified'],
+            tweet._json['user']['followers_count'],
+            tweet._json['user']['friends_count'],
+            tweet._json['user']['favourites_count'],
+            tweet._json['user']['statuses_count'],
+            tweet._json['user']['lang'],
+            tweet._json['user']['created_at']
+        ]
+
+        cursor = self.db.cursor()
+        cursor.execute(tweet_query, tweet_params)
+        try:
+            cursor.execute(place_query, place_params)
+        except sqlite3.IntegrityError as e:
+            print("place", e)
+
+        try:
+            cursor.execute(user_query, user_params)
+        except sqlite3.IntegrityError as e:
+            print("user", e)
         self.db.commit()
 
     def get_value(self, tweet, key):
@@ -118,8 +176,10 @@ def create_db_tables():
     dir = os.path.abspath(os.path.dirname(__file__))
     db = sqlite3.connect(os.path.join(dir, 'Tweets_db.sqlite'))
     with open(os.path.join(dir, 'db_creation.sql')) as fp:
-        query = fp.read()
-        db.cursor().execute(query)
+        queries = fp.read().split("--split--")
+        for query in queries:
+            db.cursor().execute(query)
+        db.commit()
         db.close()
 
 
@@ -140,9 +200,8 @@ def run():
     # The api user an OR operator. This means we can't filter on both location
     # and terms. We are there fore collecting all tweets based on location and
     # will filter on terms manually afterwards or before database insertiion.
-    cslStream.filter(  # track=['crisis'],
-        locations=[4.4224534002, 57.6773084094, 13.2416495125, 63.8360955113 ]) # Sørlige halvdel av Norge.
-
+    cslStream.filter(
+        locations=[4.4224534002, 57.6773084094, 13.2416495125, 63.8360955113])  # Sørlige halvdel av Norge.
 
 
 # Start the stream
