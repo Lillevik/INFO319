@@ -73,7 +73,6 @@ class CrisisStreamListener(tweepy.StreamListener):
                       " retweeted, filter_level, lang, timestamp_ms, lat, lon, place_id, user_id)" \
                       " VALUES " \
                       "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); "
-        print(tweet._json)
         lat = None
         lon = None
         coords = self.get_value(tweet, 'geo')
@@ -188,7 +187,7 @@ def run():
     Run the twitter stream program
     :return:
     """
-    print("Starting up...")
+    print("Starting up")
     create_db_tables()
     auth = tweepy.OAuthHandler(consumer_token, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
@@ -196,12 +195,21 @@ def run():
     cslListener = CrisisStreamListener()
     cslStream = tweepy.Stream(auth=auth, listener=cslListener)
 
-    print("Waiting for Twitter data.")
+    locations = []
+    with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "kordinater.txt")) as fp:
+        lines = fp.readlines()
+    for line in lines:
+        coords = line.split(',')
+        for coord in coords:
+            locations.append(float(coord))
+
+
+    print("Waiting for Twitter data....")
     # The api user an OR operator. This means we can't filter on both location
     # and terms. We are there fore collecting all tweets based on location and
     # will filter on terms manually afterwards or before database insertiion.
     cslStream.filter(
-        locations=[4.4224534002, 57.6773084094, 13.2416495125, 63.8360955113])  # Sørlige halvdel av Norge.
+        locations=locations)  # Sørlige halvdel av Norge.
 
 
 # Start the stream
