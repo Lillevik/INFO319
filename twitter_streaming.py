@@ -16,7 +16,7 @@ class CrisisStreamListener(tweepy.StreamListener):
         super().__init__()
         self.dirpath = os.path.abspath(os.path.dirname(__file__))
         self.db_filename = os.path.join(self.dirpath, "Tweets_db.sqlite")
-        self.out_filename = os.path.join(self.dirpath, "Tweets.json")
+        self.out_filename = os.path.join(self.dirpath, "Tweets.jsonl") # JsonLines, not a single json object
         if not os.path.isfile(self.out_filename):
             # Create if it does not exist
             with open(self.out_filename, 'w+') as fb:
