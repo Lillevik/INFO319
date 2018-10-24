@@ -22,6 +22,11 @@ class CrisisStreamListener(tweepy.StreamListener):
             with open(self.out_filename, 'w+') as fb:
                 fb.close()
         self.db = sqlite3.connect(self.db_filename)
+        self.total_tweets = 0
+
+        self.total_tweets = self.db.execute("SELECT count(id) as count from Tweet;").fetchone()[0]
+        self.counter = 0
+        print(self.total_tweets)
 
     def on_status(self, tweet):
         """
@@ -31,13 +36,18 @@ class CrisisStreamListener(tweepy.StreamListener):
         :return:
         """
         try:
+
+            self.counter = self.counter + 1
+            if self.counter == 50:
+                self.counter = 0
+                self.total_tweets = self.db.execute("SELECT count(id) as count from Tweet;").fetchone()[0]
+                print("Current tweets fetched: {}".format(str(self.total_tweets)))
             self.append_tweet(tweet._json)
             self.insert_tweet(tweet)
-            print(tweet.created_at)
         except KeyboardInterrupt:
             print("Program was stopped by the keyboard.")
         except Exception as e:
-            raise e
+            print(e)
 
     def on_error(self, status_code):
         """
@@ -145,12 +155,12 @@ class CrisisStreamListener(tweepy.StreamListener):
         try:
             cursor.execute(place_query, place_params)
         except sqlite3.IntegrityError as e:
-            print("place", e)
+            pass
 
         try:
             cursor.execute(user_query, user_params)
         except sqlite3.IntegrityError as e:
-            print("user", e)
+            pass
         self.db.commit()
 
     def get_value(self, tweet, key):
