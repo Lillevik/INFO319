@@ -47,7 +47,7 @@ def query_db(conn, query):
         row2 = cur.fetchone()[0]
         cur.execute(q3)
         row3 = cur.fetchone()[0]
-        print("Tweet: {}\nPlace: {}\nUser: {}".format(row1, row2, row3))
+        print("Tweet: {}  Place: {}  User: {}".format(row1, row2, row3))
 
     else:
         cur.execute(query)
@@ -59,7 +59,8 @@ def query_db(conn, query):
 def run():
     # create a database connection
     conn = get_db()
-    print("Table = 'Tweet', 'Place', 'User'\nPremade queries: all, last <num>")
+    print("Table = 'Tweet', 'Place', 'User'\nPremade queries: info, all, last <num>")
+    query_db(conn, "info")
     while True:
         try:
             user_inp = input("Query> ")
