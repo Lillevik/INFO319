@@ -90,11 +90,18 @@ class CrisisStreamListener(tweepy.StreamListener):
             coords = coords['coordinates']
             lat = coords[0]
             lon = coords[1]
+
+        content = None
+        if 'extended_tweet' in tweet._json:
+            content = tweet._json['extended_tweet']['full_text']
+        else:
+            content = tweet._json['text']
+
         tweet_params = [
             int(tweet.created_at.strftime('%Y%m%d%H%M%S')),
             self.get_value(tweet, 'id'),
             self.get_value(tweet, 'id_str'),
-            self.get_value(tweet, 'text'),
+            content,
             self.get_value(tweet, 'source'),
             self.get_value(tweet, 'truncated'),
             self.get_value(tweet, 'quoted_status_id'),
@@ -109,6 +116,7 @@ class CrisisStreamListener(tweepy.StreamListener):
             self.get_value(tweet, 'filter_level'),
             self.get_value(tweet, 'lang'),
             self.get_value(tweet, 'timestamp_ms'),
+
             lat,
             lon,
             tweet._json['place']['id'],
@@ -151,8 +159,8 @@ class CrisisStreamListener(tweepy.StreamListener):
         ]
 
         cursor = self.db.cursor()
-        cursor.execute(tweet_query, tweet_params)
         try:
+            cursor.execute(tweet_query, tweet_params)
             cursor.execute(place_query, place_params)
         except sqlite3.IntegrityError as e:
             pass
