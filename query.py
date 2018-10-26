@@ -52,9 +52,10 @@ def query_db(conn, query):
     else:
         cur.execute(query)
         rows = cur.fetchall()
-        for row in rows:
-            print(row)
-    
+        #for row in rows:
+        #    print(row)
+        return rows
+            
 
 def run():
     # create a database connection
@@ -69,4 +70,3 @@ def run():
             print("\n")
         except Exception as e:
             pass
-run()
