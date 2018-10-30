@@ -1,4 +1,8 @@
+requests
+pyspark
 tweepy
 wordcloud
 matplotlib
 flask
+flask_socketio
+eventlet

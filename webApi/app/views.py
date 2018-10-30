@@ -1,7 +1,7 @@
-from flask import Flask, jsonify, request
+from flask import jsonify, request, render_template
 import os, sqlite3, traceback
-
-app = Flask(__name__)
+from app import app
+from app import socket_events
 
 conf = app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 dir = os.path.abspath(os.path.dirname(__file__))
@@ -42,7 +42,7 @@ def get_tweets_from_period():
             for j in range(len(table_columns)):
                 tweet_object[table_columns[j]] = tweet[j]
             tweet_objects.append(tweet_object)
-        json = {'tweets': tweet_objects, 'count':len(tweet_objects)}
+        json = {'tweets': tweet_objects, 'count': len(tweet_objects)}
         conn.close()
         return jsonify(json)
     except Exception as e:
@@ -50,9 +50,14 @@ def get_tweets_from_period():
         return jsonify({"Error": "An unknown error occurred, please contact developer."})
 
 
-@app.route("/test", methods=["GET"])
-def test():
-    return "test"
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
 
 
-app.run(debug=True)
+@app.route("/incomingTweet", methods=['POST'])
+def receive_tweet():
+    form = request.form
+    tweet = form['tweet']
+    socket_events.send_tweet(tweet)
+    return ''
