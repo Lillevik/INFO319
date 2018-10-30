@@ -1,21 +1,38 @@
-from afinn import Afinn
-import query
-import spark
+# Spark shit
+import findspark
+findspark.init('/opt/apache-spark')
+import pyspark as ps
+import pandas as pd
+import warnings
+from pyspark.sql import SQLContext
+# Local shit
+import query as q
+import cleaner as c
+# Other shit
 import os
 
-def analyze():
-    db = query.get_db()
-    q = "SELECT * FROM Tweet JOIN User ON Tweet.user_id = User.id WHERE User.location LIKE '%Manchester%' ORDER BY User.id LIMIT 10 ;"
-    q2 = "SELECT * FROM Tweet where lang = 'en';"
-    rows = query.query_db(db, q2)
-    afinn = Afinn()
-    print("   Tweet ID    |score| Tweet content\n")
-    for row in rows:
-        tweet_content = row[3].strip("\t\r\n")
-        if tweet_content == None: tweet_content = ""
-        sentiment = afinn.score(tweet_content)
-        print("{} | {} | {}".format(row[0], sentiment, tweet_content))
+def get_tweets():
+    db = q.get_db()
+    query = "SELECT User.screen_name, Tweet.text, Tweet.lang FROM Tweet join User ON Tweet.user_id = User.id WHERE Tweet.lang LIKE 'en' ORDER BY Tweet.created_at DESC LIMIT 10;"
+    dataset = q.query_db(db, query)
+    clean_data = []
+    for k, v in enumerate(dataset):
+        content = c.tweet_cleaner(v[1])
+        #print(k, v[2],v[1].strip('\n\r\t'), "|", content.strip('\n'))
+        clean_data.append([v[0], content])
+    return clean_data
 
-#    for x in range(): 
+def create_dataframe():
+    try:
+        # create SparkContext on all CPUs available: in my case I have 4 CPUs on my laptop
+        sc = ps.SparkContext('local[1]')
+        sqlContext = SQLContext(sc)
+        data = get_tweets()
+        df = pd.DataFrame(data)
+        print(df.head())
+        return df
 
-analyze()
+    except ValueError:
+        warnings.warn("SparkContext already exists in this scope")
+
+create_dataframe()
