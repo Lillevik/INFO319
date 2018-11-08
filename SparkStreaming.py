@@ -2,10 +2,12 @@
 import json
 import traceback
 import requests
+from datetime import datetime
 
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SparkSession
+import db_handling
 
 
 # Lazily instantiated global instance of SparkSession
@@ -90,6 +92,7 @@ def handler(rdd, url):
 def send_tweets(rdd, url):
     tweets = rdd.collect()
     for tweet in tweets:
+        db_handling.insert_tweet(tweet)
         requests.post(url, data={'tweet': json.dumps(tweet)})
 
 
@@ -97,8 +100,13 @@ sortedWordCount.foreachRDD(lambda rdd: handler(rdd, 'http://localhost:5000/incom
 sortedHashtagCount.foreachRDD(lambda rdd: handler(rdd, 'http://localhost:5000/incomingHashtagCount'))
 tweet_objects.foreachRDD(lambda rdd: send_tweets(rdd, "http://localhost:5000/incomingTweet"))
 
-sortedWordCount.pprint()
-sortedHashtagCount.pprint()
+
+sortedWordCount.saveAsTextFiles("./word_counts/".format(str(datetime.now()) + ".json"))
+sortedHashtagCount.saveAsTextFiles("./hashtag_counts/".format(str(datetime.now()) + ".json"))
+
+
+# sortedWordCount.pprint()
+# sortedHashtagCount.pprint()
 
 # You must start the Spark StreamingContext, and await process termination…
 ssc.checkpoint("./checkpoints/")

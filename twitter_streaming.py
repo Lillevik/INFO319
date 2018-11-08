@@ -1,4 +1,4 @@
-import tweepy, os, json, sqlite3, traceback, requests
+import tweepy, os, json, sqlite3, traceback
 
 consumer_token = "A416DpVGgr6ojpB3ITnnh3ZIe"
 consumer_secret = "CJbxJRIxRpmVsGg5d8bxRzpSW0qMuaeRuCRyl2bSI9KISGPo92"
@@ -16,7 +16,7 @@ class CrisisStreamListener(tweepy.StreamListener):
         super().__init__()
         self.dirpath = os.path.abspath(os.path.dirname(__file__))
         self.db_filename = os.path.join(self.dirpath, "Tweets_db.sqlite")
-        self.out_filename = os.path.join(self.dirpath, "Tweets.jsonl")  # JsonLines, not a single json object
+        self.out_filename = os.path.join(self.dirpath, "Tweets.jsonl") # JsonLines, not a single json object
         if not os.path.isfile(self.out_filename):
             # Create if it does not exist
             with open(self.out_filename, 'w+') as fb:
@@ -36,23 +36,18 @@ class CrisisStreamListener(tweepy.StreamListener):
         :return:
         """
         try:
-            self.counter = self.counter + 1
 
-            # self.append_tweet(tweet._json)
-            self.insert_tweet(tweet)
-            if tweet.lang == 'en':
-                # Send the data to the api
-                requests.post('http://localhost:5000/incomingTweet', data={
-                    'tweet': json.dumps(tweet._json)
-                })
+            self.counter = self.counter + 1
             if self.counter == 50:
                 self.counter = 0
                 self.total_tweets = self.db.execute("SELECT count(id) as count from Tweet;").fetchone()[0]
-                print("Current tweets fetched: {}".format(self.total_tweets))
-        except sqlite3.IntegrityError:
-            pass
+                print("Current tweets fetched: {}".format(str(self.total_tweets)))
+            self.append_tweet(tweet._json)
+            self.insert_tweet(tweet)
+        except KeyboardInterrupt:
+            print("Program was stopped by the keyboard.")
         except Exception as e:
-            print(traceback.format_exc())
+            print(e)
 
     def on_error(self, status_code):
         """
@@ -124,23 +119,23 @@ class CrisisStreamListener(tweepy.StreamListener):
 
             lat,
             lon,
-            "",
-            ""
+            tweet._json['place']['id'],
+            tweet._json['user']['id']
         ]
 
         place_query = "INSERT INTO Place (id, url, place_type, name, full_name, country_code, country, bounding_box)" \
                       " values (?, ?, ?, ?, ?, ?, ?, ?);"
 
-        # place_params = [
-        #     tweet._json['place']['id'],
-        #     tweet._json['place']['url'],
-        #     tweet._json['place']['place_type'],
-        #     tweet._json['place']['name'],
-        #     tweet._json['place']['full_name'],
-        #     tweet._json['place']['country_code'],
-        #     tweet._json['place']['country'],
-        #     json.dumps(tweet._json['place']['bounding_box'])
-        # ]
+        place_params = [
+            tweet._json['place']['id'],
+            tweet._json['place']['url'],
+            tweet._json['place']['place_type'],
+            tweet._json['place']['name'],
+            tweet._json['place']['full_name'],
+            tweet._json['place']['country_code'],
+            tweet._json['place']['country'],
+            json.dumps(tweet._json['place']['bounding_box'])
+        ]
 
         user_query = "INSERT INTO User (id, id_str, name, screen_name, location, url, description, verified," \
                      " followers_count, friends_count, favourites_count, statuses_count, lang, created_at) " \
@@ -166,7 +161,7 @@ class CrisisStreamListener(tweepy.StreamListener):
         cursor = self.db.cursor()
         try:
             cursor.execute(tweet_query, tweet_params)
-            # cursor.execute(place_query, place_params)
+            cursor.execute(place_query, place_params)
         except sqlite3.IntegrityError as e:
             pass
 
@@ -226,16 +221,14 @@ def run():
         for coord in coords:
             locations.append(float(coord))
 
+
     print("Waiting for Twitter data....")
     # The api user an OR operator. This means we can't filter on both location
     # and terms. We are there fore collecting all tweets based on location and
     # will filter on terms manually afterwards or before database insertiion.
     cslStream.filter(
-        track=['flood', 'earthquake'])  # locations=locations)
+        locations=locations)  # Sørlige halvdel av Norge.
 
 
-try:
-    # Start the stream
-    run()
-except KeyboardInterrupt:
-    print("Program was exited by user.")
+# Start the stream
+run()
