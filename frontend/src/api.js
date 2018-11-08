@@ -8,16 +8,24 @@ function init_socket(){
     });
 
     socket.on('connected', (data) => {
-       console.log(data);
+       //Do something?
     });
-    setInterval(() => {
-        socket.emit('message', 'test data')
-    }, 15000);
 }
 function received_tweet(cb) {
     socket.on('tweet', function (tweet) {
-        console.log(tweet);
         cb(JSON.parse(tweet));
     });
 }
-export { init_socket, received_tweet };
+
+function reveived_wordcount(cb){
+    socket.on('word_count', function (wordcount) {
+        cb(wordcount);
+    })
+}
+
+function reveived_hashtag(cb){
+    socket.on('hashtag_count', function (hashtagcount) {
+        cb(hashtagcount);
+    })
+}
+export { init_socket, received_tweet, reveived_wordcount , reveived_hashtag };

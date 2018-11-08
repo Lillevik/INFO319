@@ -1,12 +1,13 @@
 from flask import jsonify, request, render_template
-import os, sqlite3, traceback
+import sqlite3, traceback, json
+from os import path
 from app import app
 from app import socket_events
 
 conf = app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
-dir = os.path.abspath(os.path.dirname(__file__))
+dir = path.abspath(path.dirname(__file__))
 
-db_file = os.path.join(dir, "Tweets_db.sqlite")
+db_file = path.join(dir, "Tweets_db.sqlite")
 
 
 @app.route("/twitter", methods=["GET"])
@@ -58,6 +59,47 @@ def index():
 @app.route("/incomingTweet", methods=['POST'])
 def receive_tweet():
     form = request.form
+    print(form)
     tweet = form['tweet']
     socket_events.send_tweet(tweet)
+    return ''
+
+
+@app.route("/incomingWordCount", methods=['POST'])
+def receive_wordcount():
+    form = request.form
+    count = json.loads(form['count'])
+
+    counts = []
+    for tuple in count[:100]:
+        data = {}
+        data['text'] = tuple[0]
+        data['value'] = int(tuple[1])
+        counts.append(data)
+    if len(counts) > 50:
+        json_out = {'word_count':counts}
+        open(path.join(app.config['APP_FOLDER'], 'word_count.json'), 'w+')\
+            .write(json.dumps(json_out))
+    socket_events.send_wordcount(json.dumps(counts))
+    return ''
+
+
+@app.route("/incomingHashtagCount", methods=['POST'])
+def receive_hashtag_count():
+    form = request.form
+    count = json.loads(form['count'])
+
+    counts = []
+    for tuple in count[:100]:
+        data = {}
+        data['text'] = tuple[0]
+        data['value'] = int(tuple[1]) * 10 # So few #hastags so we need to up the value for visualization
+        counts.append(data)
+    if len(counts) > 50:
+        json_out = {'hashtag_count': counts}
+        open(path.join(app.config['APP_FOLDER'], 'hashtag_count.json'), 'w+') \
+            .write(json.dumps(json_out))
+
+    socket_events.send_hashtagcount(json.dumps(counts))
+
     return ''

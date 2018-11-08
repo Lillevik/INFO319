@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Api caches
+webApi/app/hashtag_count.json
+webApi/app/word_count.json
+
 # Distribution / packaging
 .Python
 build/

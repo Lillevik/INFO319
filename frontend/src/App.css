@@ -1,41 +1,65 @@
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
-    font-size: calc(10px + 2vmin);
-    box-sizing: border-box;
-    padding:10px;
+html, body{
+    margin: 0;
+    max-height: 100vh;
 }
 
-.App-link {
-    color: #61dafb;
+.App{
+    min-height: calc(100vh - 10px);
+    height: 100%;
+}
+
+#root{
 }
 
 .highlight {
     color: orangered;
 }
 
-.tweet-container {
+.shadow{
+
+}
+
+.wordCloud{
+    border: thin solid #dbe1d8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tweetContainer{
+    height: 100%;
+    border: thin solid #dbe1d8;
+    padding:5px;
+    overflow-x: scroll;
+}
+
+.tweetImg{
+    display: flex;
+    justify-content: center;
+    padding:5px;
+}
+
+.tweetImg > img{
+    border-radius: 100%;
+}
+
+.tweetText{
+    word-break: break-word;
+}
+
+#wordcloudPanel{
     background: white;
     padding:5px;
-    margin: 5px;
-    box-shadow: 0 0 5px -2px black;
-    word-wrap: break-word;
+
 }
 
-.fade-in{
-    -webkit-animation: fadein 2s; /* Safari, Chrome and Opera > 12.1 */
-   -moz-animation: fadein 2s; /* Firefox < 16 */
-    -ms-animation: fadein 2s; /* Internet Explorer */
-     -o-animation: fadein 2s; /* Opera < 12.1 */
-        animation: fadein 2s;
-}
+#tweetPanel {
+    background: white;
 
-@keyframes fadein {
-    from {
-        opacity: 0;
-    }
-    to   {
-        opacity: 1;
-    }
+    height: 100%;
+    /*display: flex;*/
+    /*justify-content: space-between;*/
+    /*flex-grow: 1;*/
+    /*flex-wrap: wrap;*/
+    /*align-items: flex-start;*/
 }
-
