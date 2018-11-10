@@ -5,6 +5,16 @@ __pycache__/
 .idea/
 # C extensions
 *.so
+*.DS_Store
+
+
+# Api caches
+/webApi/app/word_count.json
+/webApi/app/hashtag_count.json
+checkpoints/
+hashtag_counts/
+word_counts/
+*.sqlite
 
 # Distribution / packaging
 .Python
@@ -24,6 +34,10 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+node_modules/
+
+Tweets.jsonl
+Tweets_db.sqlite
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

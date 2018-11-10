@@ -1,0 +1,65 @@
+html, body{
+    margin: 0;
+    max-height: 100vh;
+}
+
+.App{
+    min-height: calc(100vh - 10px);
+    height: 100%;
+}
+
+#root{
+}
+
+.highlight {
+    color: orangered;
+}
+
+.shadow{
+
+}
+
+.wordCloud{
+    border: thin solid #dbe1d8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tweetContainer{
+    height: 100%;
+    border: thin solid #dbe1d8;
+    padding:5px;
+    overflow-x: scroll;
+}
+
+.tweetImg{
+    display: flex;
+    justify-content: center;
+    padding:5px;
+}
+
+.tweetImg > img{
+    border-radius: 100%;
+}
+
+.tweetText{
+    word-break: break-word;
+}
+
+#wordcloudPanel{
+    background: white;
+    padding:5px;
+
+}
+
+#tweetPanel {
+    background: white;
+
+    height: 100%;
+    /*display: flex;*/
+    /*justify-content: space-between;*/
+    /*flex-grow: 1;*/
+    /*flex-wrap: wrap;*/
+    /*align-items: flex-start;*/
+}
