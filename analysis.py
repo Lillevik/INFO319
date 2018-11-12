@@ -1,7 +1,6 @@
 from afinn import Afinn
 import query
-import spark
-import os
+
 
 def analyze():
     db = query.get_db()
@@ -16,6 +15,12 @@ def analyze():
         sentiment = afinn.score(tweet_content)
         print("{} | {} | {}".format(row[0], sentiment, tweet_content))
 
-#    for x in range(): 
+
+def is_positive(text_content, min_value, emoticons=True):
+    return Afinn(emoticons=emoticons).score(text_content) >= min_value
+
+
+def get_sentiment(text_content, emoticons=True):
+    return Afinn(emoticons=emoticons).score(text_content)
 
 analyze()
