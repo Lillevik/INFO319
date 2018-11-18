@@ -1,5 +1,12 @@
+# -*- coding: utf-8 -*-
 from afinn import Afinn
-import query
+import query, nltk, re, pprint
+from nltk.tag import StanfordNERTagger
+from nltk.tokenize import word_tokenize
+import datetime
+
+# Download punkt
+nltk.download(['punkt', 'averaged_perceptron_tagger'])
 
 
 def analyze():
@@ -17,10 +24,21 @@ def analyze():
 
 
 def is_positive(text_content, min_value, emoticons=True):
+    """
+    :param text_content: A text of words.
+    :param min_value: minimum score considered positive
+    :param emoticons: Use emoticons or not.
+    :return: Returns a boolean
+    """
     return Afinn(emoticons=emoticons).score(text_content) >= min_value
 
 
 def get_sentiment(text_content, emoticons=True):
+    """
+    :param text_content: Returns the sentiment score of a text
+    :param emoticons: Use emoticons or not.
+    :return: Returns a semtiment score of the text.
+    """
     return Afinn(emoticons=emoticons).score(text_content)
 
-analyze()
+

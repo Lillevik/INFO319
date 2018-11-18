@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS Tweet(
   timestamp_ms VARCHAR(50),
   lat DOUBLE,
   lon DOUBLE,
+  sentiment_score DOUBLE,
   place_id VARCHAR(50),
   user_id DOUBLE NOT NULL,
   FOREIGN KEY(place_id) REFERENCES Place(id),
@@ -52,6 +53,7 @@ CREATE TABLE IF NOT EXISTS User(
   listed_count DOUBLE,
   favourites_count DOUBLE,
   statuses_count DOUBLE,
+  profile_image_url TEXT,
   created_at VARCHAR(50) NOT NULL,
   lang VARCHAR(50) NOT NULL,
   PRIMARY KEY (id)
