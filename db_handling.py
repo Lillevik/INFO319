@@ -18,9 +18,9 @@ def insert_tweet(tweet):
     tweet_query = "INSERT INTO Tweet  (created_at, id, id_str, text, source," \
                   " truncated, quoted_status_id, quoted_status_id_str, is_quote_status," \
                   " quote_count, reply_count, retweet_count, favorite_count, favorited," \
-                  " retweeted, filter_level, lang, timestamp_ms, lat, lon, place_id, user_id)" \
+                  " retweeted, filter_level, lang, timestamp_ms, lat, lon, sentiment_score, place_id, user_id)" \
                   " VALUES " \
-                  "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); "
+                  "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); "
     lat = None
     lon = None
     coords = get_value(tweet, 'geo')
@@ -63,13 +63,14 @@ def insert_tweet(tweet):
         get_value(tweet, 'timestamp_ms'),
         lat,
         lon,
+        get_value(tweet, 'sentiment_score'),
         place_id,
         tweet['user']['id']
     ]
 
     user_query = "INSERT INTO User (id, id_str, name, screen_name, location, url, description, verified," \
-                 " followers_count, friends_count, favourites_count, statuses_count, lang, created_at) " \
-                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+                 " followers_count, friends_count, favourites_count, statuses_count, profile_image_url, lang, created_at) " \
+                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 
     user_params = [
         tweet['user']['id'],
@@ -84,6 +85,7 @@ def insert_tweet(tweet):
         tweet['user']['friends_count'],
         tweet['user']['favourites_count'],
         tweet['user']['statuses_count'],
+        tweet['user']['profile_image_url'],
         tweet['user']['lang'],
         tweet['user']['created_at']
     ]

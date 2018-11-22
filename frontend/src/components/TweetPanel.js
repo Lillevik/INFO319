@@ -34,14 +34,25 @@ class TweetPanel extends Component {
         } else {
             words = tweet.text.split(" ")
         }
-        this.render_words(words, tweet.id);
+        let color = 'white';
+        let score = parseInt(tweet.sentiment_score);
+        if(score >= 3){
+            color = 'green';
+        }else if (score <= -3){
+            color = 'red';
+        }else if((score <= -0.1 && score > -3) || (score < 3 && score >= 0.1)){
+            color = 'yellow';
+        }
         return (
             <div className={"col-4 pr-2 pb-2"}>
                 <div key={tweet.id} className={"shadow tweetContainer mt-3"}>
-                    <div className={"tweetImg"}>
-                        <img className={"shadow"} src={tweet.user.profile_image_url} alt={"Profile"}/>
+                    <div className={"sentimentScore " + color}>
+                        {tweet.sentiment_score}
                     </div>
-                    <h4 className={"text-center p-2"}><a href={"https://twitter.com/" + tweet.user.screen_name}>@{tweet.user.screen_name}</a></h4>
+                    <div className={"tweetImg"}>
+                        <img className={"shadow"} src={tweet.profile_image_url} alt={"Profile"}/>
+                    </div>
+                    <h4 className={"text-center p-2"}><a href={"https://twitter.com/" + tweet.screen_name}>@{tweet.screen_name}</a></h4>
                     <div className={"p-2"}>
                         <p className={"tweetText"}>{this.render_words(words, tweet.id)}</p>
                     </div>
@@ -60,7 +71,8 @@ class TweetPanel extends Component {
                 rows.push(row);
                 row = [];
             }
-            row.push(this.render_tweet(tweets[i]))
+            let tweet = tweets[i];
+            row.push(this.render_tweet(tweet));
             counter ++;
             if(i === tweets.length){
                 rows.push(row);

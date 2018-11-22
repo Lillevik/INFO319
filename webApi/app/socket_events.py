@@ -1,7 +1,7 @@
 from flask_socketio import emit, send, join_room, leave_room
 from app import socketio, app
 from os import path
-import json
+import json, sqlite3
 
 clients = []
 
@@ -25,6 +25,21 @@ def on_connect():
     if path.isfile(word_file_path):
         word_json = json.load(open(word_file_path))
         send_wordcount(json.dumps(word_json['word_count']))
+    conn = sqlite3.connect(path.join(app.config['APP_FOLDER'], '../../emergency_tweets.sqlite'))
+    curs = conn.cursor()
+    tweets = curs.execute("SELECT Tweet.id, Tweet.text, Tweet.sentiment_score, User.profile_image_url,"
+                          " User.screen_name FROM Tweet JOIN User ON User.id = Tweet.user_id "
+                          "ORDER BY Tweet.id DESC LIMIT 20;""").fetchall()
+    conn.close()
+    for row in tweets:
+        tweet = {
+            'id': row[0],
+            'text': row[1],
+            'sentiment_score': row[2],
+            'profile_image_url': row[3],
+            'screen_name': row[4],
+        }
+        send_tweet(json.dumps(tweet))
 
 
 @socketio.on('disconnect', namespace='/chat')

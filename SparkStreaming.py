@@ -1,23 +1,9 @@
-# Run using spark-submit python_file.py
-import json
-import traceback
-import requests
+# Run using spark-submit <python_file.py>
+import db_handling, analysis, json, requests
 from datetime import datetime
-
 from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import SparkSession
-import db_handling
-
-
-# Lazily instantiated global instance of SparkSession
-def get_spark_session_instance():
-    if "sparkSessionSingletonInstance" not in globals():
-        globals()["sparkSessionSingletonInstance"] = SparkSession \
-            .builder \
-            .config("local[*]", "Twitter Streaming") \
-            .getOrCreate()
-    return globals()["sparkSessionSingletonInstance"]
 
 
 # Lazily instantiated global instance of SparkSession
@@ -27,43 +13,74 @@ def get_spark_context_instance():
     return globals()["sparkContextSingletonInstance"]
 
 
+def send_count(rdd, url):
+    # Send data to api
+    requests.post(url, data={'count': json.dumps(rdd.collect())})
+
+
+def send_tweet(data, url):
+    requests.post(url, data={'tweet': json.dumps(data)})
+
+
+def store_and_send_tweet(rdd):
+    tweets = rdd.collect()
+    for tweet in tweets:
+        tweet = format_tweet(tweet)
+        # Store each tweet in the database
+        data = {
+            'id': tweet['id'],
+            'text': tweet['text'],
+            'sentiment_score': tweet['sentiment_score'],
+            'profile_image_url': tweet['user']['profile_image_url'],
+            'screen_name': tweet['user']['screen_name'],
+        }
+        send_tweet(data, 'http://localhost:5000/incomingTweet')
+        db_handling.insert_tweet(tweet)
+
+
+def format_tweet(tweet):
+    if 'extended_tweet' in tweet:
+        ext_tweet = tweet['extended_tweet']
+        if ext_tweet is not None and 'full_text' in ext_tweet:
+            tweet['text'] = tweet['extended_tweet']["full_text"]
+            print("USing extended")
+    tweet['sentiment_score'] = analysis.get_sentiment(tweet['text'])
+    return tweet
+
+
 # Our filter function:
 def filter_tweets(tweet):
     try:
         if 'lang' in tweet:
-            global text
             if tweet['lang'] == 'en':
-                if 'extended_tweet' in tweet:
-                    text = tweet['extended_tweet']["full_text"]
-                    tweet['text'] = text
+                print(type(tweet), tweet['text'])
                 return True
         return False
     except Exception as e:
-        print(str(e) + " : ", tweet)
-        print(traceback.format_exc())
+        print("Error: " + str(e))
+        return False
 
 
 def filter_linking_word(word):
     linking_words = [
         'the', 'a', 'in', 'of', 'and', 'as', 'also', 'too', 'to', 'rt', 'you', 'i', 'me',
         'is', 'for', 'and', 'all', 'this', 'was', 'that', 'an', 'have', 'on', 'from', 'with',
-        'are', 'at', 'it', '-', 'got', 'get'
+        'are', 'at', 'it', '-', 'got', 'get', '&amp;'
     ]
     return word.lower() not in linking_words and not word.startswith('http')  # TODO: Add more words?
 
 
 # Create the spark context
-sc = SparkContext("local[2]", "Twitter Streaming context")
-sc.setLogLevel("ERROR")
+sc = get_spark_context_instance()  # SparkContext("local[*]", "Twitter Streaming context")
+sc.setLogLevel("ERROR")  # Limit output to error messages only.
 
 # Create the sql context and connect to stream
-sqlContext = get_spark_session_instance()
 ssc = StreamingContext(sc, 10)  # 10 is the batch interval in seconds
 IP = "localhost"
 Port = 5555
 
 lines = ssc.socketTextStream(IP, Port)
-tweet_objects = lines.map(lambda json_string: (json.loads(json_string))) \
+tweet_objects = lines.map(json.loads) \
     .filter(lambda tweet: filter_tweets(tweet))
 
 tweet_contents = tweet_objects.map(lambda tweet_object: tweet_object['text'])
@@ -83,27 +100,16 @@ hashtagCount = hashtagPairs.reduceByKeyAndWindow(lambda x, y: int(x) + int(y), l
 sortedWordCount = wordCounts.transform(lambda rdd: rdd.sortBy(lambda x: x[1], False))
 sortedHashtagCount = hashtagCount.transform(lambda rdd: rdd.sortBy(lambda x: x[1], False))
 
+sortedWordCount.foreachRDD(lambda rdd: send_count(rdd, 'http://localhost:5000/incomingWordCount'))
+sortedHashtagCount.foreachRDD(lambda rdd: send_count(rdd, 'http://localhost:5000/incomingHashtagCount'))
+# Store filtered tweets to the database
+tweet_objects.foreachRDD(lambda rdd: store_and_send_tweet(rdd))
 
-def handler(rdd, url):
-    # Send data to api
-    requests.post(url, data={'count': json.dumps(rdd.collect())})
-
-
-def send_tweets(rdd, url):
-    tweets = rdd.collect()
-    for tweet in tweets:
-        db_handling.insert_tweet(tweet)
-        requests.post(url, data={'tweet': json.dumps(tweet)})
-
-
-sortedWordCount.foreachRDD(lambda rdd: handler(rdd, 'http://localhost:5000/incomingWordCount'))
-sortedHashtagCount.foreachRDD(lambda rdd: handler(rdd, 'http://localhost:5000/incomingHashtagCount'))
-tweet_objects.foreachRDD(lambda rdd: send_tweets(rdd, "http://localhost:5000/incomingTweet"))
+# Map tweets to reduce data send to api TODO: <-
 
 
 sortedWordCount.saveAsTextFiles("./word_counts/".format(str(datetime.now()) + ".json"))
 sortedHashtagCount.saveAsTextFiles("./hashtag_counts/".format(str(datetime.now()) + ".json"))
-
 
 # sortedWordCount.pprint()
 # sortedHashtagCount.pprint()
