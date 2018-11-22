@@ -44,7 +44,6 @@ def format_tweet(tweet):
         if ext_tweet is not None and 'full_text' in ext_tweet:
             tweet['text'] = tweet['extended_tweet']["full_text"]
             print("USing extended")
-    print("Not using extended")
     tweet['sentiment_score'] = analysis.get_sentiment(tweet['text'])
     return tweet
 
@@ -54,9 +53,8 @@ def filter_tweets(tweet):
     try:
         if 'lang' in tweet:
             if tweet['lang'] == 'en':
-                print(tweet['text'])
+                print(type(tweet), tweet['text'])
                 return True
-            print(type(tweet), tweet['text'])
         return False
     except Exception as e:
         print("Error: " + str(e))
