@@ -9,11 +9,9 @@ __pycache__/
 
 
 # Api caches
-/webApi/app/word_count.json
-/webApi/app/hashtag_count.json
-checkpoints/
-hashtag_counts/
-word_counts/
+webApi/app/word_count.json
+webApi/app/hashtag_count.json
+spark_data/
 *.sqlite
 
 # Distribution / packaging

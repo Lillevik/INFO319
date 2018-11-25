@@ -18,9 +18,15 @@ class App extends Component {
         init_socket();
 
         received_tweet((tweet) => {
-            this.setState({
-               tweets:[tweet, ...this.state.tweets.slice(0,50)]
-            });
+            if(tweet instanceof Array){
+                this.setState({
+                   tweets:[...tweet, ...this.state.tweets.slice(0,50)]
+                });
+            }else{
+                this.setState({
+                   tweets:[tweet, ...this.state.tweets.slice(0,50)]
+                });
+            }
         });
 
         reveived_wordcount((count) => {

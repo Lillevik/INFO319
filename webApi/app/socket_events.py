@@ -3,14 +3,8 @@ from app import socketio, app
 from os import path
 import json, sqlite3
 
-clients = []
 
-
-@socketio.on('message')
-def message(message):
-    emit('message', message)
-
-
+# Send latest data when client connects
 @socketio.on('connect')
 def on_connect():
     emit('connected', {
@@ -31,39 +25,28 @@ def on_connect():
                           " User.screen_name FROM Tweet JOIN User ON User.id = Tweet.user_id "
                           "ORDER BY Tweet.id DESC LIMIT 20;""").fetchall()
     conn.close()
+    tweet_list = []
     for row in tweets:
-        tweet = {
+        tweet_list.append({
             'id': row[0],
             'text': row[1],
             'sentiment_score': row[2],
             'profile_image_url': row[3],
             'screen_name': row[4],
-        }
-        send_tweet(json.dumps(tweet))
+        })
+    send_tweet(json.dumps(tweet_list))
 
 
-@socketio.on('disconnect', namespace='/chat')
-def test_disconnect():
-    # TODO: Handle disconnect event on the client side
-    print('Client disconnected')
-
-
-# Custom Events Below
 @socketio.on('tweet')
 def send_tweet(tweet):
-    print("Sending tweet")
     socketio.emit('tweet', tweet, broadcast=True, json=True)
 
 
-# Custom Events Below
 @socketio.on('word_count')
 def send_wordcount(count):
-    print("Sending word count")
     socketio.emit('word_count', count, broadcast=True, json=True)
 
 
-# Custom Events Below
 @socketio.on('hashtag_count')
 def send_hashtagcount(count):
-    print("Sending hashtag count")
     socketio.emit('hashtag_count', count, broadcast=True, json=True)

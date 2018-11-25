@@ -1,6 +1,7 @@
 from tweepy import StreamListener, OAuthHandler, Stream
 import socket
 
+# WARNING: DO NOT SHARE THESE
 consumer_token = "A416DpVGgr6ojpB3ITnnh3ZIe"
 consumer_secret = "CJbxJRIxRpmVsGg5d8bxRzpSW0qMuaeRuCRyl2bSI9KISGPo92"
 access_token = "379895356-xWon3y2j9ZLPeGbnZOpHUMy7dT5siXTic5BtHIXY"

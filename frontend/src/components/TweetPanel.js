@@ -6,7 +6,7 @@ class TweetPanel extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            tweets: [{text: "abd 123 earthquake", id: 1, screen_name:"Marius Lillevik"}, {text: "abd 123", id: 2, screen_name:"Marius Lillevik"}, {text: "abd 123 flood", id: 3, screen_name:"Marius Lillevik"},{text: "abd 123 flood", id: 4, screen_name:"Marius Lillevik"},{text: "abd 123 flood", id: 5, screen_name:"Marius Lillevik"}]
+            tweets: []
         }
     }
 

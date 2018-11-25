@@ -1,26 +1,5 @@
 # -*- coding: utf-8 -*-
 from afinn import Afinn
-import query, nltk, re, pprint
-from nltk.tag import StanfordNERTagger
-from nltk.tokenize import word_tokenize
-import datetime
-
-# Download punkt
-nltk.download(['punkt', 'averaged_perceptron_tagger'])
-
-
-def analyze():
-    db = query.get_db()
-    q = "SELECT * FROM Tweet JOIN User ON Tweet.user_id = User.id WHERE User.location LIKE '%Manchester%' ORDER BY User.id LIMIT 10 ;"
-    q2 = "SELECT * FROM Tweet where lang = 'en';"
-    rows = query.query_db(db, q2)
-    afinn = Afinn()
-    print("   Tweet ID    |score| Tweet content\n")
-    for row in rows:
-        tweet_content = row[3].strip("\t\r\n")
-        if tweet_content == None: tweet_content = ""
-        sentiment = afinn.score(tweet_content)
-        print("{} | {} | {}".format(row[0], sentiment, tweet_content))
 
 
 def is_positive(text_content, min_value, emoticons=True):
@@ -42,3 +21,31 @@ def get_sentiment(text_content, emoticons=True):
     return Afinn(emoticons=emoticons).score(text_content)
 
 
+def format_tweet(tweet):
+    if 'extended_tweet' in tweet:
+        ext_tweet = tweet['extended_tweet']
+        if ext_tweet is not None and 'full_text' in ext_tweet:
+            tweet['text'] = tweet['extended_tweet']["full_text"]
+
+    tweet['sentiment_score'] = get_sentiment(tweet['text'])
+    return tweet
+
+
+# Our filter function
+def filter_tweets(tweet):
+    try:
+        if 'lang' in tweet:
+            if tweet['lang'] == 'en':
+                return True
+        return False
+    except Exception as e:
+        return False
+
+
+def filter_linking_word(word):
+    linking_words = [
+        'the', 'a', 'in', 'of', 'and', 'as', 'also', 'too', 'to', 'rt', 'you', 'i', 'me',
+        'is', 'for', 'and', 'all', 'this', 'was', 'that', 'an', 'have', 'on', 'from', 'with',
+        'are', 'at', 'it', '-', 'got', 'get', '&amp;'
+    ]
+    return word.lower() not in linking_words and not word.startswith('http')
