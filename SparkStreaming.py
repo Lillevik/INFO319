@@ -5,14 +5,9 @@ from pyspark import SparkContext
 from pyspark.streaming import StreamingContext
 
 
-def send_count(rdd, url):
-    # Send count data to api
-    requests.post(url, data={'count': json.dumps(rdd.collect())})
-
-
-def send_tweet(data, url):
+def send_data_to_api(data, url, data_type):
     # Send tweet data to the api
-    requests.post(url, data={'tweet': json.dumps(data)})
+    requests.post(url, data={data_type: json.dumps(data)})
 
 
 def store_and_send_tweet(rdd):
@@ -30,7 +25,7 @@ def store_and_send_tweet(rdd):
         }
         tweet_list.append(data)
         db_handling.insert_tweet(tweet)
-    send_tweet(tweet_list, 'http://localhost:5000/incomingTweet')
+    send_data_to_api(tweet_list, 'http://localhost:5000/incomingTweet', 'tweet')
 
 
 # Create the spark context
@@ -48,14 +43,16 @@ lines = ssc.socketTextStream(IP, Port)
 # Map the incominng text lines to json objects
 # and filter these using the custom filter function
 tweet_objects = lines.map(json.loads) \
-    .filter(lambda tweet: analysis.filter_tweets(tweet))
+    .filter(lambda tweet: analysis.filter_tweet(tweet))
 
 # Map the tweet objects to a new stream of just the tweet content
-tweet_contents = tweet_objects.map(lambda tweet_object: tweet_object['text'])
+tweet_contents = tweet_objects.map(lambda tweet_object: analysis.get_tweet_content(tweet_object))
 
 # Filter out unnecessary noise from the words
 words = tweet_contents.flatMap(lambda line: line.split()) \
     .filter(lambda word: analysis.filter_linking_word(word))
+
+# Extract the hashtags from the words
 hashtags = words.filter(lambda word: word.startswith('#'))
 
 # Assign the words and hashtags with a value of 1
@@ -75,8 +72,8 @@ sortedWordCount = wordCounts.transform(lambda rdd: rdd.sortBy(lambda x: x[1], Fa
 sortedHashtagCount = hashtagCount.transform(lambda rdd: rdd.sortBy(lambda x: x[1], False))
 
 # Send word and hashtag counts to the api
-sortedWordCount.foreachRDD(lambda rdd: send_count(rdd, 'http://localhost:5000/incomingWordCount'))
-sortedHashtagCount.foreachRDD(lambda rdd: send_count(rdd, 'http://localhost:5000/incomingHashtagCount'))
+sortedWordCount.foreachRDD(lambda rdd: send_data_to_api(rdd.collect(), 'http://localhost:5000/incomingWordCount', 'count'))
+sortedHashtagCount.foreachRDD(lambda rdd: send_data_to_api(rdd.collect(), 'http://localhost:5000/incomingHashtagCount', 'count'))
 
 # Store filtered tweets to the database and send them to the api
 tweet_objects.foreachRDD(lambda rdd: store_and_send_tweet(rdd))

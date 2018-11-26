@@ -1,6 +1,5 @@
 from tweepy import StreamListener, OAuthHandler, Stream
-import socket
-
+import socket, db_handling
 # WARNING: DO NOT SHARE THESE
 consumer_token = "A416DpVGgr6ojpB3ITnnh3ZIe"
 consumer_secret = "CJbxJRIxRpmVsGg5d8bxRzpSW0qMuaeRuCRyl2bSI9KISGPo92"
@@ -45,6 +44,9 @@ if __name__ == "__main__":
     s.bind((host, port))  # Bind to the port
 
     print("Listening on port: %s" % str(port))
+
+    # Make sure the database exists before starting streaming
+    db_handling.create_db_tables()
 
     s.listen(5)  # Now wait for client connection.
     c, addr = s.accept()  # Establish connection with client.

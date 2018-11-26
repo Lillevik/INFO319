@@ -2,9 +2,6 @@ import sqlite3, json
 from os import path
 from datetime import datetime
 
-dirpath = path.abspath(path.dirname(__file__))
-db_filename = path.join(dirpath, "emergency_tweets.sqlite")
-
 
 def insert_tweet(tweet):
     """
@@ -144,6 +141,9 @@ def create_db_tables():
         db.commit()
         db.close()
 
+
+dirpath = path.abspath(path.dirname(__file__))
+db_filename = path.join(dirpath, "emergency_tweets.sqlite")
 
 if not path.isfile(db_filename):
     create_db_tables()
