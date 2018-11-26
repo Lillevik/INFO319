@@ -19,22 +19,26 @@ def on_connect():
     if path.isfile(word_file_path):
         word_json = json.load(open(word_file_path))
         send_wordcount(json.dumps(word_json['word_count']))
-    conn = sqlite3.connect(path.join(app.config['APP_FOLDER'], '../../emergency_tweets.sqlite'))
-    curs = conn.cursor()
-    tweets = curs.execute("SELECT Tweet.id, Tweet.text, Tweet.sentiment_score, User.profile_image_url,"
-                          " User.screen_name FROM Tweet JOIN User ON User.id = Tweet.user_id "
-                          "ORDER BY Tweet.id DESC LIMIT 20;""").fetchall()
-    conn.close()
-    tweet_list = []
-    for row in tweets:
-        tweet_list.append({
-            'id': row[0],
-            'text': row[1],
-            'sentiment_score': row[2],
-            'profile_image_url': row[3],
-            'screen_name': row[4],
-        })
-    send_tweet(json.dumps(tweet_list))
+    db_path = path.join(app.config['APP_FOLDER'], '../../emergency_tweets.sqlite')
+    if path.isfile(db_path):
+        conn = sqlite3.connect(db_path)
+        curs = conn.cursor()
+        tweets = curs.execute("SELECT Tweet.id, Tweet.text, Tweet.sentiment_score, User.profile_image_url,"
+                              " User.screen_name FROM Tweet JOIN User ON User.id = Tweet.user_id "
+                              "ORDER BY Tweet.id DESC LIMIT 20;""").fetchall()
+        conn.close()
+        tweet_list = []
+        for row in tweets:
+            tweet_list.append({
+                'id': row[0],
+                'text': row[1],
+                'sentiment_score': row[2],
+                'profile_image_url': row[3],
+                'screen_name': row[4],
+            })
+        send_tweet(json.dumps(tweet_list))
+    else:
+        print("No database has been created yet.")
 
 
 @socketio.on('tweet')
