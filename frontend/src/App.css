@@ -45,6 +45,7 @@ html, body{
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
+
 }
 
 .tweetContainer{
@@ -116,8 +117,8 @@ html, body{
 #wordcloudPanel{
     background: white;
     padding:5px;
-
 }
+
 
 #tweetPanel {
     background: white;

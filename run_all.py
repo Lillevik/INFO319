@@ -1,12 +1,11 @@
-import subprocess, threading
+import subprocess, threading, sys
 from os import path
 
-path_to_python = 'python3'
 cwd = path.abspath(path.dirname(__file__))
 
 
 def start_tweepy():
-    subprocess.call([path_to_python, path.join(cwd, 'TweepyStreaming.py')])
+    subprocess.call([sys.executable, path.join(cwd, 'TweepyStreaming.py')])
 
 
 def start_spark():
@@ -14,7 +13,7 @@ def start_spark():
 
 
 def start_api():
-    subprocess.call([path_to_python, path.join(cwd, 'webApi/run.py')])
+    subprocess.call([sys.executable, path.join(cwd, 'webApi/run.py')])
 
 
 # Creata a thread for each of the programs to run in parallel
