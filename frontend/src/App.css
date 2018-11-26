@@ -1,3 +1,18 @@
+.example {
+    display: -ms-grid;
+    display: grid;
+    -webkit-transition: all .5s;
+    -o-transition: all .5s;
+    transition: all .5s;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+    background: -webkit-gradient(linear, left top, left bottom, from(white), to(black));
+    background: -webkit-linear-gradient(top, white, black);
+    background: -o-linear-gradient(top, white, black);
+    background: linear-gradient(to bottom, white, black);
+}
 html, body{
     margin: 0;
     max-height: 100vh;
@@ -21,9 +36,15 @@ html, body{
 
 .wordCloud{
     border: thin solid #dbe1d8;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
 }
 
 .tweetContainer{
@@ -40,11 +61,17 @@ html, body{
     border-radius: 100%;
     width: 40px;
     height: 40px;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
-    justify-content: space-around;
-    align-items: center;
+    -ms-flex-pack: distribute;
+        justify-content: space-around;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
     z-index: 200;
-    box-shadow: 0 0 4px 1px #b8b8ba;
+    -webkit-box-shadow: 0 0 4px 1px #b8b8ba;
+            box-shadow: 0 0 4px 1px #b8b8ba;
 }
 
 .white{
@@ -64,8 +91,12 @@ html, body{
 }
 
 .tweetImg{
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
-    justify-content: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
     padding:5px;
 }
 
@@ -74,7 +105,12 @@ html, body{
 }
 
 .tweetText{
-    word-break: break-word;
+   /* For Firefox */
+    white-space: pre-wrap;
+    word-break: break-all;
+
+    /* For Chrome and IE */
+    word-wrap: break-word;
 }
 
 #wordcloudPanel{
