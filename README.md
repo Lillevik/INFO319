@@ -6,6 +6,10 @@ Twitter stream analysis for emergency management; before, during or after an eme
 Get pip requirements through 
 ``pip3 install -r requirements.txt``
 
+### Architecture
+![Dataflow](https://raw.githubusercontent.com/Lillevik/INFO319/master/model.png)
+
+
 ### Running the program
 The program consists of several modules that communicates
 with each other by passing data from one to the other.
