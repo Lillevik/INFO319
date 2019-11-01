@@ -7,7 +7,7 @@ Get pip requirements through
 ``pip3 install -r requirements.txt``
 
 ### Architecture
-![Dataflow](https://raw.githubusercontent.com/Lillevik/INFO319/master/model.png)
+![Dataflow](https://raw.githubusercontent.com/Lillevik/INFO319/master/architecture.png)
 
 
 ### Running the program
