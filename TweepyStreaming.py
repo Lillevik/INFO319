@@ -1,10 +1,14 @@
 from tweepy import StreamListener, OAuthHandler, Stream
 import socket, db_handling
 # WARNING: DO NOT SHARE THESE
-consumer_token = "A416DpVGgr6ojpB3ITnnh3ZIe"
-consumer_secret = "CJbxJRIxRpmVsGg5d8bxRzpSW0qMuaeRuCRyl2bSI9KISGPo92"
-access_token = "379895356-xWon3y2j9ZLPeGbnZOpHUMy7dT5siXTic5BtHIXY"
-access_token_secret = "aCFWjzo7J6D5ok7bXCTss8y2NTJeqvKpsbKCi6jovP9a1"
+consumer_token = ""
+consumer_secret = ""
+access_token = ""
+access_token_secret = ""
+
+if consumer_token == "":
+    print("Missing twitter credentials, please enter credentials in 'TweepyStreaming.py'")
+    exit()
 
 
 class TweetsListener(StreamListener):
